@@ -1,0 +1,28 @@
+.github/workflows/hasi.yml
+name: HASI-MD Bot
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/5 *'
+
+jobs:
+  bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    - run: npm install
+    - run: node index.js
+      env:
+        SESSION_ID: ${{ secrets.SESSION_ID }}
+    - if: always()
+      run: |
+        curl -X POST \
+        -H "Authorization: token ${{ secrets.GH_TOKEN }}" \
+        -H "Accept: application/vnd.github.v3+json" \
+        https://api.github.com/repos/${{ github.repository }}/actions/workflows/hasi.yml/dispatches \
+        -d '{"ref":"main"}'
